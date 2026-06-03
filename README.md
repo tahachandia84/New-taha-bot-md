@@ -205,7 +205,7 @@ npm install
 
 > 💡 First time takes 2–5 minutes. Do not close the terminal.
 
-### 3️⃣ — edit index.js file 
+### 3️⃣ — Edit index.js file 
 
 ```
 nano index.js
@@ -236,7 +236,7 @@ PORT         =  8000
 ### 4️⃣ — Start the bot
 
 ```bash
-node index.js
+npm start
 ```
 
 </details>
@@ -253,7 +253,7 @@ node index.js
 <br/>
 
 ```
-Step 1 → Start bot:   node index.js
+Step 1 → Start bot:   npm start
 Step 2 → Open:        http://localhost:8000    (in your browser)
 Step 3 → Enter:       Your WhatsApp number with country code
                       ✅  923001234567
