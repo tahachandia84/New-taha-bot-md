@@ -45,7 +45,7 @@ import commandRegistry from './lib/commandRegistry.js';
 const PORT = process.env.PORT || 8000;
 const ownerNumbers = (process.env.OWNER_NUMBER || "923212844383").split(',');
 const PREFIX = config.PREFIX || '.';
-const MONGODB_URI = process.env.MONGODB_URI || "mongodb+srv://shehbaz-md_1002:wQ2ZpYfOXzNG0UW4@cluster0.j7bnfkj.mongodb.net/shehbazmd?appName=Cluster0";
+const MONGODB_URI = process.env.MONGODB_URI || "your mangodb string";
 
 const activeSessions = new Map();
 const messageCache = new Map(); 
