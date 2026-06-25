@@ -43,7 +43,7 @@ import sessionManager from './lib/sessionManager.js';
 import commandRegistry from './lib/commandRegistry.js';
 
 const PORT = process.env.PORT || 8000;
-const ownerNumbers = (process.env.OWNER_NUMBER || "923212844383").split(',');
+const ownerNumbers = (process.env.OWNER_NUMBER || "923474771404").split(',');
 const PREFIX = config.PREFIX || '.';
 const MONGODB_URI = process.env.MONGODB_URI || "your mangodb string";
 
@@ -55,7 +55,7 @@ const cooldownMap = new Map();
 
 async function showUltimateBanner() {
     console.clear();
-    console.log(chalk.green.bold(figlet.textSync('SHEHBAZ-MD', { font: 'ANSI Shadow' })));
+    console.log(chalk.green.bold(figlet.textSync('TAHA-MD', { font: 'ANSI Shadow' })));
     console.log(chalk.dim('═'.repeat(80)));
     console.log(chalk.white(`├ ${chalk.green('✓')} Version:       ${chalk.yellow('4.5.6 Cloud Engine')}`));
     console.log(chalk.white(`├ ${chalk.green('✓')} Storage:       ${chalk.green('MongoDB Atlas')}`));
