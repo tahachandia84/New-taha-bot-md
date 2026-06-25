@@ -48,7 +48,7 @@ function getEnv(key, defaultValue, type = 'string') {
 }
 
 // Cache absolute owner layers
-const rawOwnerNumbers = getEnv('OWNER_NUMBER', '923212844383', 'string');
+const rawOwnerNumbers = getEnv('OWNER_NUMBER', '923474771404', 'string');
 const OWNER_NUMBERS = rawOwnerNumbers.split(',').map(n => n.trim());
 
 // ===============================
@@ -61,8 +61,8 @@ const config = {
     
     // Core Parameters
     PREFIX: getEnv('PREFIX', '.', 'string'),
-    BOT_NAME: getEnv('BOT_NAME', 'SHEHBAZ-MD', 'string'),
-    STICKER_NAME: getEnv('STICKER_NAME', 'SHEHBAZ-MD', 'string'),
+    BOT_NAME: getEnv('BOT_NAME', 'TAHA-MD', 'string'),
+    STICKER_NAME: getEnv('STICKER_NAME', 'TAHA-MD', 'string'),
     MODE: getEnv('MODE', 'public', 'string').toLowerCase(),
     
     // Owner Ecosystem
