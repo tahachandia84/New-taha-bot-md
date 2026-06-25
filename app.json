@@ -1,8 +1,8 @@
 {
-  "name": "SHEHBAZ-MD",
-  "description": "⚡ SHEHBAZ-MD - Advanced WhatsApp Multi-Device Bot with Multi-Session Support | Created by Shehbaz—Dev",
+  "name": "TAHA-MD",
+  "description": "⚡ TAHA-MD - Advanced WhatsApp Multi-Device Bot with Multi-Session Support | Created by Taha—Dev",
   "logo": "https://files.catbox.moe/9126wm.png",
-  "keywords": ["whatsapp-bot", "shehbaz-md", "baileys", "multi-device", "md-bot"],
+  "keywords": ["whatsapp-bot", "Taha-md", "baileys", "multi-device", "md-bot"],
   "success_url": "/",
   "env": {
     "SESSION_ID": {
