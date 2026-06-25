@@ -6,9 +6,9 @@ import { cmd } from '../lib/command.js';
 import commandRegistry from '../lib/commandRegistry.js';
 import config from '../setting.js';
 
-const MENU_IMAGE = process.env.MAIN_IMG || config.MAIN_IMG || 'https://files.catbox.moe/x9rntx.png';
+const MENU_IMAGE = process.env.MAIN_IMG || config.MAIN_IMG || 'https://i.imgur.com/1tUVG85.jpeg';
 const CHANNEL    = process.env.CHANNEL_LINK || config.CHANNEL_LINK
-    || 'https://whatsapp.com/channel/0029VbD4UbdCRs1mNQPRZt2F';
+    || 'https://whatsapp.com/channel/0029Vb7lhr96buMEe8ShC42t';
 
 // ── Unicode Bold Sans-Serif converter ────────────────────────────────────────
 const BL = ['𝗮','𝗯','𝗰','𝗱','𝗲','𝗳','𝗴','𝗵','𝗶','𝗷','𝗸','𝗹','𝗺','𝗻','𝗼','𝗽','𝗾','𝗿','𝘀','𝘁','𝘂','𝘃','𝘄','𝘅','𝘆','𝘇'];
@@ -102,7 +102,7 @@ ${boxes}🤖 ${bold('Active Feature')}:
 
 🔗 ${bold('CHANNEL')}:
 > ${CHANNEL}
-⚡ ${bold('POWERED BY')}: *Shehbaz—Dev*`;
+⚡ ${bold('POWERED BY')}: *Taha—Dev*`;
 
     try {
         await sock.sendMessage(from, {
