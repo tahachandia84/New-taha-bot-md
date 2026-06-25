@@ -133,7 +133,7 @@ router.get("/", async (req, res) => {
                         
                         // 🎉 Send success template
                         await sock.sendMessage(targetJid, { 
-                            text: `✅ *SUCCESSFULLY CONNECTED!*\n\n*SHEHBAZ-MD* automation core structure is fully operational.\n\nGo back to your hosting dashboard, paste the session token ID, and boot the main terminal script.`
+                            text: `✅ *SUCCESSFULLY CONNECTED!*\n\n*TAHA-MD* automation core structure is fully operational.\n\nGo back to your hosting dashboard, paste the session token ID, and boot the main terminal script.`
                         });
                         
                         await delay(3000);
