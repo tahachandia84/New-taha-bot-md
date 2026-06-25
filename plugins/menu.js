@@ -61,7 +61,7 @@ cmd({
 }, async (sock, msg, data) => {
     const { from, reply, sender, prefix } = data;
     const p        = prefix || config.PREFIX || '.';
-    const botName  = config.BOT_NAME || 'SHEHBAZ MD';
+    const botName  = config.BOT_NAME || 'TAHA MD';
     const mode     = config.MODE === 'private' ? `${bold('Private')} 🔐` : `${bold('Public')} 🌍`;
     const userName = msg.pushName || sender || 'User';
 
