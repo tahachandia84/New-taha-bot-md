@@ -409,7 +409,6 @@ async function loadAllSessions() {
         console.error(chalk.red("❌ Failed to load local sessions:"), e.message);
     }
 }
-
 // ===============================
 // WEB ROUTING (DIRECT INLINE HTML)
 // ===============================
@@ -436,7 +435,7 @@ app.get("/", (req, res) => {
     <body>
         <div class="card">
             <h2>TAHA BABU MD</h2>
-            <p>Paste your Session ID here to connect your bot instantly.</p>
+            <p>Paste your Session ID here to connect your bot instantly to the cloud engine.</p>
             <form action="/" method="POST">
                 <input type="text" name="session_id" placeholder="Paste Session ID..." required>
                 <button type="submit">Connect Bot</button>
