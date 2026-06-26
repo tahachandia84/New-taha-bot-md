@@ -1,5 +1,6 @@
 /**
- * SHEHBAZ-MD v4.5.6 - Ultimate WhatsApp Multi-Device Cloud Bot
+ * TAHA BABU MD v4.5.6 - Ultimate WhatsApp Multi-Device Cloud Bot
+ * Edited by: Taha Babu (Local Storage Mode)
  */
 
 import express from "express";
@@ -13,7 +14,6 @@ import { createRequire } from "module";
 import chalk from "chalk";
 import figlet from "figlet";
 import dotenv from "dotenv";
-import mongoose from "mongoose";
 
 dotenv.config();
 
@@ -28,10 +28,9 @@ const {
     delay,
     makeCacheableSignalKeyStore,
     downloadMediaMessage,
+    useMultiFileAuthState, // Local authentication function
     proto
 } = baileys;
-
-import { useMongoDBAuthState } from './lib/mongoAuth.js';
 
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
@@ -45,7 +44,6 @@ import commandRegistry from './lib/commandRegistry.js';
 const PORT = process.env.PORT || 8000;
 const ownerNumbers = (process.env.OWNER_NUMBER || "923474771404").split(',');
 const PREFIX = config.PREFIX || '.';
-const MONGODB_URI = process.env.MONGODB_URI || "your mangodb string";
 
 const activeSessions = new Map();
 const messageCache = new Map(); 
@@ -55,10 +53,10 @@ const cooldownMap = new Map();
 
 async function showUltimateBanner() {
     console.clear();
-    console.log(chalk.green.bold(figlet.textSync('TAHA-MD', { font: 'ANSI Shadow' })));
+    console.log(chalk.cyan.bold(figlet.textSync('TAHA BABU', { font: 'ANSI Shadow' })));
     console.log(chalk.dim('═'.repeat(80)));
-    console.log(chalk.white(`├ ${chalk.green('✓')} Version:       ${chalk.yellow('4.5.6 Cloud Engine')}`));
-    console.log(chalk.white(`├ ${chalk.green('✓')} Storage:       ${chalk.green('MongoDB Atlas')}`));
+    console.log(chalk.white(`├ ${chalk.green('✓')} Version:        ${chalk.yellow('4.5.6 Cloud Engine')}`));
+    console.log(chalk.white(`├ ${chalk.green('✓')} Storage:        ${chalk.cyan('Local Storage (JSON/Files)')}`));
     console.log(chalk.white(`├ ${chalk.green('✓')} Multi-Session: ${chalk.green('ACTIVE')}`));
     console.log(chalk.white(`└ ${chalk.green('✓')} Status:        ${chalk.green('READY')}`));
     console.log(chalk.dim('═'.repeat(80)));
@@ -71,29 +69,12 @@ app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
 app.use(express.static(path.join(__dirname, 'public')));
 
-async function connectDatabase() {
-    try {
-        await mongoose.connect(MONGODB_URI);
-        console.log(chalk.green(`✓ MongoDB Connected`));
-    } catch (err) {
-        console.error(chalk.red(`❌ MongoDB Error:`), err.message);
-        process.exit(1);
-    }
-}
-
 async function setupDirectories() {
-    const dirs = ['lib', 'plugins', 'temp', 'logs', 'public'];
+    // Session save karne ke liye 'sessions' folder lazmi banayein
+    const dirs = ['lib', 'plugins', 'temp', 'logs', 'public', 'sessions'];
     for (const dir of dirs) {
         await fs.ensureDir(path.join(__dirname, dir));
     }
-}
-
-async function loadGroupSettings() {
-    try {
-        const db = mongoose.connection.db;
-        const savedData = await db.collection('group_configs').find({}).toArray();
-        savedData.forEach(config => groupSettings.set(config.groupId, config.settings));
-    } catch (e) {}
 }
 
 async function loadPlugins() {
@@ -121,15 +102,23 @@ function isOwner(number) {
 }
 
 // ===============================
-// MAIN SESSION CONNECTOR
+// MAIN SESSION CONNECTOR (LOCAL FILE AUTH)
 // ===============================
-export async function startSession(sessionNumber, retryCount = 0) {
+export async function startSession(sessionNumber, retryCount = 0, customCreds = null) {
     const maxRetries = 5;
-    const uniqueSessionId = `SESSION_${sessionNumber}`;
+    const sessionFolder = path.join(__dirname, 'sessions', `SESSION_${sessionNumber}`);
+    await fs.ensureDir(sessionFolder);
     
-    console.log(chalk.yellow(`🔌 Starting session for +${sessionNumber}...`));
+    console.log(chalk.yellow(`🔌 Starting local session for +${sessionNumber}...`));
     
-    const { state, saveCreds, clearSession } = await useMongoDBAuthState(uniqueSessionId);
+    const { state, saveCreds } = await useMultiFileAuthState(sessionFolder);
+    
+    // Agar pairRouter se new base64 data aaya ho to use inject karein
+    if (customCreds && Object.keys(state.creds).length === 0) {
+        Object.assign(state.creds, customCreds);
+        await saveCreds();
+    }
+    
     const { version } = await fetchLatestBaileysVersion();
     
     const sock = makeWASocket({
@@ -157,7 +146,6 @@ export async function startSession(sessionNumber, retryCount = 0) {
             sessionManager.register(sessionNumber, 'active');
             console.log(chalk.green(`✅ Session +${sessionNumber} is ONLINE`));
 
-            // Auto-add connected number as owner so any deployer has full access
             const botNum = sock.user?.id?.split(':')[0].split('@')[0];
             if (botNum && !ownerNumbers.includes(botNum)) {
                 ownerNumbers.push(botNum);
@@ -169,14 +157,14 @@ export async function startSession(sessionNumber, retryCount = 0) {
                 await delay(3000);
                 const connectImg = config.MAIN_IMG || process.env.MAIN_IMG || 'https://files.catbox.moe/9126wm.png';
                 const connectText =
-`╭━━━〔 *SHEHBAZ-MD* 〕━━━┈⊷
+`╭━━━〔 *TAHA BABU MD* 〕━━━┈⊷
 ┃
 ┃ ✅ *Bot Successfully Connected!*
 ┃
-┃ 🤖 *Bot:* ${config.BOT_NAME || 'SHEHBAZ-MD'}
+┃ 🤖 *Bot:* ${config.BOT_NAME || 'TAHA BABU-MD'}
 ┃ 📡 *Prefix:* [ ${PREFIX} ]
 ┃ 🌍 *Mode:* ${config.MODE === 'private' ? 'Private 🔐' : 'Public 🌍'}
-┃ 👑 *Owner:* ${config.OWNER_NAME || 'Shehbaz'}
+┃ 👑 *Owner:* TAHA BABU
 ┃
 ┃ 🟢 Anti-Delete   🟢 Anti-Call
 ┃ 🟢 Auto-React    🟢 Auto-Read
@@ -186,7 +174,7 @@ export async function startSession(sessionNumber, retryCount = 0) {
 Type *${PREFIX}menu* for all commands
 Type *${PREFIX}settings* for feature status
 
-> ⚡ _Powered by Shehbaz—Dev_`;
+> ⚡ _Powered by Taha Babu_`;
                 try {
                     await sock.sendMessage(`${sessionNumber}@s.whatsapp.net`, {
                         image: { url: connectImg },
@@ -207,7 +195,7 @@ Type *${PREFIX}settings* for feature status
             if (statusCode === DisconnectReason.loggedOut) {
                 console.log(chalk.red(`🔴 Session +${sessionNumber} logged out`));
                 sessionManager.register(sessionNumber, 'revoked');
-                await clearSession(); 
+                await fs.remove(sessionFolder).catch(() => {});
             } else {
                 if (retryCount < maxRetries) {
                     const delayTime = Math.min(5000 * (retryCount + 1), 30000);
@@ -221,13 +209,10 @@ Type *${PREFIX}settings* for feature status
         }
     });
 
-    // Auto-react emoji list
     const REACT_EMOJIS = ['❤️','🔥','😎','⚡','🎯','💫','✨','🌟','👑','💎','🚀','🎉'];
-
-    // Auto-reply cooldown tracker: senderNumber → last-replied timestamp
     const autoReplyTracker = new Map();
 
-    // Anti-Call System
+    // Anti-Call
     sock.ev.on('call', async (calls) => {
         for (const call of calls) {
             if (call.status !== 'offer') continue;
@@ -235,23 +220,18 @@ Type *${PREFIX}settings* for feature status
             const isOwnerCaller = isOwner(callerNum);
 
             if (config.ANTI_CALL === 'true' && !isOwnerCaller) {
-                // Reject the call
                 await sock.rejectCall(call.id, call.from).catch(() => {});
-
-                // Build reply: auto-reply msg if set, else default
-                const arMsg = config.AUTO_REPLY === 'true' && config.AUTO_REPLY_MSG
-                    ? config.AUTO_REPLY_MSG
-                    : null;
+                const arMsg = config.AUTO_REPLY === 'true' && config.AUTO_REPLY_MSG ? config.AUTO_REPLY_MSG : null;
                 const callText = arMsg
                     ? `📵 *Auto-Reply* (missed call)\n\n${arMsg}`
-                    : `📵 *SHEHBAZ-MD*\n\nCalls are not allowed!\nPlease send a message instead.`;
+                    : `📵 *TAHA BABU MD*\n\nCalls are not allowed!\nPlease send a message instead.`;
 
                 await sock.sendMessage(call.from, { text: callText }).catch(() => {});
             }
         }
     });
 
-    // Anti-Delete Handler — sends deleted content to owner's inbox
+    // Anti-Delete
     sock.ev.on('messages.update', async (updates) => {
         if (config.ANTI_DELETE !== 'true') return;
         for (const update of updates) {
@@ -259,14 +239,12 @@ Type *${PREFIX}settings* for feature status
                 const { key, update: msgUpdate } = update;
                 if (!key || key.remoteJid === 'status@broadcast') continue;
 
-                const isRevoke = msgUpdate?.message?.protocolMessage?.type === 0
-                    || msgUpdate?.messageStubType === 1;
+                const isRevoke = msgUpdate?.message?.protocolMessage?.type === 0 || msgUpdate?.messageStubType === 1;
                 if (!isRevoke) continue;
 
                 const cached = messageCache.get(key.id);
                 if (!cached) continue;
 
-                // Always send to owner's DM inbox
                 const ownerJid = `${ownerNumbers[0]}@s.whatsapp.net`;
                 const from     = key.remoteJid;
                 const deleter  = key.participant || key.remoteJid;
@@ -278,61 +256,32 @@ Type *${PREFIX}settings* for feature status
                 const msgType = getContentType(cached.message);
 
                 if (msgType === 'conversation' || msgType === 'extendedTextMessage') {
-                    const text = cached.message?.conversation
-                        || cached.message?.extendedTextMessage?.text || '';
-                    await sock.sendMessage(ownerJid, {
-                        text: header + text,
-                        mentions: [deleter]
-                    }).catch(() => {});
-
+                    const text = cached.message?.conversation || cached.message?.extendedTextMessage?.text || '';
+                    await sock.sendMessage(ownerJid, { text: header + text, mentions: [deleter] }).catch(() => {});
                 } else if (['imageMessage','videoMessage','audioMessage','stickerMessage','documentMessage'].includes(msgType)) {
-                    // Download the media buffer first, then re-send
                     try {
                         const buffer = await downloadMediaMessage(cached, 'buffer', {});
                         const mediaInfo = cached.message[msgType];
 
                         if (msgType === 'imageMessage') {
-                            await sock.sendMessage(ownerJid, {
-                                image:   buffer,
-                                caption: header + (mediaInfo.caption || '')
-                            });
+                            await sock.sendMessage(ownerJid, { image: buffer, caption: header + (mediaInfo.caption || '') });
                         } else if (msgType === 'videoMessage') {
-                            await sock.sendMessage(ownerJid, {
-                                video:   buffer,
-                                caption: header + (mediaInfo.caption || '')
-                            });
+                            await sock.sendMessage(ownerJid, { video: buffer, caption: header + (mediaInfo.caption || '') });
                         } else if (msgType === 'audioMessage') {
-                            await sock.sendMessage(ownerJid, {
-                                audio:   buffer,
-                                mimetype: mediaInfo.mimetype || 'audio/ogg; codecs=opus',
-                                ptt:     mediaInfo.ptt || false
-                            });
-                            await sock.sendMessage(ownerJid, {
-                                text: header + (mediaInfo.ptt ? '🎤 Voice Message' : '🎵 Audio')
-                            });
+                            await sock.sendMessage(ownerJid, { audio: buffer, mimetype: mediaInfo.mimetype || 'audio/ogg; codecs=opus', ptt: mediaInfo.ptt || false });
+                            await sock.sendMessage(ownerJid, { text: header + (mediaInfo.ptt ? '🎤 Voice Message' : '🎵 Audio') });
                         } else if (msgType === 'stickerMessage') {
                             await sock.sendMessage(ownerJid, { sticker: buffer });
                             await sock.sendMessage(ownerJid, { text: header + '🎴 Sticker' });
                         } else if (msgType === 'documentMessage') {
-                            await sock.sendMessage(ownerJid, {
-                                document: buffer,
-                                mimetype: mediaInfo.mimetype || 'application/octet-stream',
-                                fileName: mediaInfo.fileName || 'file'
-                            });
-                            await sock.sendMessage(ownerJid, {
-                                text: header + `📄 Document: ${mediaInfo.fileName || 'file'}`
-                            });
+                            await sock.sendMessage(ownerJid, { document: buffer, mimetype: mediaInfo.mimetype || 'application/octet-stream', fileName: mediaInfo.fileName || 'file' });
+                            await sock.sendMessage(ownerJid, { text: header + `📄 Document: ${mediaInfo.fileName || 'file'}` });
                         }
                     } catch (dlErr) {
-                        // If download fails, just send the alert text
-                        await sock.sendMessage(ownerJid, {
-                            text: header + `[${msgType.replace('Message','')} — could not download]`
-                        }).catch(() => {});
+                        await sock.sendMessage(ownerJid, { text: header + `[${msgType.replace('Message','')} — could not download]` }).catch(() => {});
                     }
                 } else {
-                    await sock.sendMessage(ownerJid, {
-                        text: header + `[${msgType || 'Unknown'}]`
-                    }).catch(() => {});
+                    await sock.sendMessage(ownerJid, { text: header + `[${msgType || 'Unknown'}]` }).catch(() => {});
                 }
             } catch (_) {}
         }
@@ -344,7 +293,6 @@ Type *${PREFIX}settings* for feature status
             const msg = msgUpdate.messages[0];
             if (!msg || !msg.message) return;
             if (msg.key?.remoteJid === 'status@broadcast') {
-                // Auto-view status
                 if (config.AUTO_STATUS_SEEN === 'true') {
                     await sock.readMessages([msg.key]).catch(() => {});
                 }
@@ -362,12 +310,10 @@ Type *${PREFIX}settings* for feature status
             const sender = msg.key.participant || msg.key.remoteJid;
             const senderNumber = sender.split('@')[0].split(':')[0];
             const isGroup = from.endsWith('@g.us');
-            // Owner = hardcoded list OR whoever paired this bot session
             const botOwnNum = sock.user?.id?.split('@')[0].split(':')[0];
             const isOwnerNumber = isOwner(senderNumber) || (botOwnNum && senderNumber === botOwnNum);
             const isBot = botOwnNum && senderNumber === botOwnNum && msg.key.fromMe;
 
-            // Cache message for anti-delete (max 200 entries)
             if (msg.key?.id && !isBot) {
                 messageCache.set(msg.key.id, msg);
                 if (messageCache.size > 200) {
@@ -376,59 +322,36 @@ Type *${PREFIX}settings* for feature status
                 }
             }
 
-            // Auto-read
             if (config.READ_MESSAGE === 'true' && !isBot) {
                 await sock.readMessages([msg.key]).catch(() => {});
             }
 
-            // Compute isCommand FIRST so auto-react can skip command messages
             const isCommand = body.startsWith(PREFIX);
 
-            // Auto-react: skip commands, skip own messages, skip protocol msgs
-            if (config.AUTO_REACT === 'true'
-                && !isBot
-                && !isCommand
-                && !msg.key.fromMe
-                && msgType !== 'protocolMessage'
-                && msgType !== 'senderKeyDistributionMessage') {
+            if (config.AUTO_REACT === 'true' && !isBot && !isCommand && !msg.key.fromMe && msgType !== 'protocolMessage' && msgType !== 'senderKeyDistributionMessage') {
                 const emoji = REACT_EMOJIS[Math.floor(Math.random() * REACT_EMOJIS.length)];
-                await sock.sendMessage(from, {
-                    react: { text: emoji, key: msg.key }
-                }).catch(() => {});
+                await sock.sendMessage(from, { react: { text: emoji, key: msg.key } }).catch(() => {});
             }
 
-            // Anti-link (groups only)
             if (config.ANTI_LINK === 'true' && isGroup && !isOwnerNumber && body) {
                 const linkRegex = /(https?:\/\/|www\.|chat\.whatsapp\.com)[^\s]*/i;
                 if (linkRegex.test(body)) {
                     await sock.sendMessage(from, { delete: msg.key }).catch(() => {});
-                    await sock.sendMessage(from, {
-                        text: `⚠️ @${senderNumber} Links are not allowed in this group!`,
-                        mentions: [sender]
-                    }).catch(() => {});
+                    await sock.sendMessage(from, { text: `⚠️ @${senderNumber} Links are not allowed in this group!`, mentions: [sender] }).catch(() => {});
                     return;
                 }
             }
 
-            // Auto-Reply: DMs only, not commands, not own msgs, not owner
-            if (config.AUTO_REPLY === 'true'
-                && config.AUTO_REPLY_MSG
-                && !isGroup
-                && !isOwnerNumber
-                && !msg.key.fromMe
-                && !isCommand) {
+            if (config.AUTO_REPLY === 'true' && config.AUTO_REPLY_MSG && !isGroup && !isOwnerNumber && !msg.key.fromMe && !isCommand) {
                 const cooldown = parseInt(config.AUTO_REPLY_DELAY || '60') * 1000;
                 const lastSent = autoReplyTracker.get(senderNumber) || 0;
                 if (Date.now() - lastSent > cooldown) {
                     autoReplyTracker.set(senderNumber, Date.now());
-                    await sock.sendMessage(from, {
-                        text: config.AUTO_REPLY_MSG
-                    }, { quoted: msg }).catch(() => {});
+                    await sock.sendMessage(from, { text: config.AUTO_REPLY_MSG }, { quoted: msg }).catch(() => {});
                 }
             }
 
             if (!isCommand) return;
-
             if (config.MODE === 'private' && !isOwnerNumber && !isBot) return;
 
             const cmdName = body.slice(PREFIX.length).split(' ')[0].toLowerCase();
@@ -437,7 +360,6 @@ Type *${PREFIX}settings* for feature status
 
             const command = commandRegistry.get(cmdName);
             if (command) {
-                // Let each command handle its own permission check
                 try {
                     await command.execute(sock, msg, {
                         from,
@@ -451,9 +373,7 @@ Type *${PREFIX}settings* for feature status
                     });
                 } catch (err) {
                     console.error(`Command Error (${cmdName}):`, err);
-                    await sock.sendMessage(from, {
-                        text: `❌ Command error: ${err.message}`
-                    }, { quoted: msg }).catch(() => {});
+                    await sock.sendMessage(from, { text: `❌ Command error: ${err.message}` }, { quoted: msg }).catch(() => {});
                 }
             }
         } catch (error) {
@@ -465,60 +385,54 @@ Type *${PREFIX}settings* for feature status
 }
 
 // ===============================
-// LOAD ALL SESSIONS
+// LOAD ALL LOCAL SESSIONS
 // ===============================
 async function loadAllSessions() {
     try {
-        const db = mongoose.connection.db;
-        const collection = db.collection('sessions');
+        const sessionsFolder = path.join(__dirname, 'sessions');
+        const items = await fs.readdir(sessionsFolder);
         
-        const activeDocs = await collection.find({ id: { $regex: /_creds$/ } }).toArray();
-        
-        const activeNumbers = activeDocs
-            .map(doc => {
-                const match = doc.id.match(/^SESSION_(\d+)_creds$/);
-                return match ? match[1] : null;
-            })
+        const activeNumbers = items
+            .filter(item => item.startsWith('SESSION_'))
+            .map(item => item.replace('SESSION_', ''))
             .filter(Boolean);
         
-        console.log(chalk.cyan(`\n📱 Found ${activeNumbers.length} saved sessions\n`));
+        console.log(chalk.cyan(`\n📱 Found ${activeNumbers.length} local saved sessions\n`));
         
         for (const number of activeNumbers) {
-            console.log(chalk.yellow(`⚙️ Loading session: +${number}`));
+            console.log(chalk.yellow(`⚙️ Loading local session: +${number}`));
             sessionManager.register(number, 'pending');
             startSession(number).catch(err => console.error(`Failed to start +${number}:`, err.message));
             await delay(2000);
         }
     } catch (e) {
-        console.error(chalk.red("❌ Failed to load sessions:"), e.message);
+        console.error(chalk.red("❌ Failed to load local sessions:"), e.message);
     }
 }
 
 // ===============================
-// WEB ROUTING - FIXED POST HANDLER FOR RAW BASE64
+// WEB ROUTING
 // ===============================
 app.get("/", (req, res) => {
     res.sendFile(path.join(__dirname, "public", "pair.html"));
 });
 
-// FIXED: Accepts raw base64 session from pair.js
+// FIXED POST ROUTE: Bina MongoDB ke credentials file directory me save karega
 app.post("/", async (req, res) => {
     try {
         const { session_id } = req.body;
-        
         console.log(chalk.yellow("📥 Received session submission..."));
         
         if (!session_id) {
             return res.status(400).json({ success: false, error: "Session ID required" });
         }
         
-        if (!session_id.startsWith("Shehbaz-MD!")) {
-            return res.status(400).json({ success: false, error: "Invalid session format" });
+        if (!session_id.startsWith("Shehbaz-MD!") && !session_id.startsWith("Taha-Babu!")) {
+            // Dono formates ko accept karega security bypass ke liye
         }
 
-        // Extract base64 data
-        const base64Data = session_id.replace("Shehbaz-MD!", "").trim();
-        const credsJsonString = Buffer.from(base64Data, 'base64').toString('utf-8');
+        const cleanSessionId = session_id.includes("!") ? session_id.split("!")[1] : session_id;
+        const credsJsonString = Buffer.from(cleanSessionId.trim(), 'base64').toString('utf-8');
         
         let creds;
         try {
@@ -529,7 +443,6 @@ app.post("/", async (req, res) => {
             return res.status(400).json({ success: false, error: "Invalid session data" });
         }
         
-        // Extract user number
         let userNumber = null;
         if (creds.me?.id) {
             userNumber = creds.me.id.split(':')[0].split('@')[0];
@@ -544,34 +457,6 @@ app.post("/", async (req, res) => {
 
         console.log(chalk.green(`✓ User: +${userNumber}`));
 
-        const db = mongoose.connection.db;
-        const collection = db.collection('sessions');
-        const uniqueSessionId = `SESSION_${userNumber}`;
-
-        // Store creds
-        await collection.findOneAndUpdate(
-            { id: `${uniqueSessionId}_creds` },
-            { $set: { data: JSON.stringify(creds), updatedAt: Date.now() } },
-            { upsert: true }
-        );
-        
-        // Store empty keys
-        await collection.findOneAndUpdate(
-            { id: `${uniqueSessionId}_keys` },
-            { $set: { data: JSON.stringify({}), updatedAt: Date.now() } },
-            { upsert: true }
-        );
-        
-        // Store metadata
-        await collection.findOneAndUpdate(
-            { id: `${uniqueSessionId}_meta` },
-            { $set: { userId: userNumber, createdAt: Date.now() } },
-            { upsert: true }
-        );
-
-        console.log(chalk.green(`✅ Session stored for +${userNumber}`));
-
-        // FIX: If session already running, disconnect it first to avoid WhatsApp conflict
         if (activeSessions.has(userNumber)) {
             console.log(chalk.yellow(`🔄 Old session found for +${userNumber}, disconnecting...`));
             try {
@@ -585,10 +470,10 @@ app.post("/", async (req, res) => {
 
         await sessionManager.register(userNumber, 'pending');
 
-        // Start new session
-        startSession(userNumber).catch(err => console.error(err));
+        // Start session directly with custom parsed creds
+        startSession(userNumber, 0, creds).catch(err => console.error(err));
 
-        return res.json({ success: true, message: `Session stored! Bot will connect as +${userNumber}` });
+        return res.json({ success: true, message: `Session stored locally! Bot will connect as +${userNumber}` });
         
     } catch (error) {
         console.error(chalk.red("❌ Error:"), error);
@@ -620,17 +505,16 @@ app.get("/api/stats", (req, res) => {
 // ===============================
 async function start() {
     await showUltimateBanner();
-    await connectDatabase(); 
     await setupDirectories();
     await loadPlugins();
-    await loadGroupSettings();
-    await sessionManager.load();
+    // MongoDB references completely removed from server startup
+    try { await sessionManager.load(); } catch (e) {}
     await loadAllSessions();
     
     app.listen(PORT, () => {
         console.log(chalk.green(`\n✓ Server on port ${PORT}`));
-        console.log(chalk.cyan(`✓ Pairing: http://localhost:${PORT}/pair`));
-        console.log(chalk.white.bold(`\n⚡ SHEHBAZ-MD ACTIVE! ⚡\n`));
+        console.log(chalk.cyan(`✓ Pairing Dashboard Ready`));
+        console.log(chalk.white.bold(`\n⚡ TAHA BABU MD ACTIVE! ⚡\n`));
     });
 }
 
