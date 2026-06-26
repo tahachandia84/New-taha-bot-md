@@ -411,95 +411,42 @@ async function loadAllSessions() {
 }
 
 // ===============================
-// WEB ROUTING
+// WEB ROUTING (DIRECT INLINE HTML)
 // ===============================
 app.get("/", (req, res) => {
-    res.sendFile(path.join(__dirname, "public", "pair.html"));
+    res.send(`
+    <!DOCTYPE html>
+    <html lang="en">
+    <head>
+        <meta charset="UTF-8">
+        <meta name="viewport" content="width=device-width, initial-scale=1.0">
+        <title>TAHA BABU MD - Dashboard</title>
+        <style>
+            body { font-family: 'Segoe UI', Tahoma, Geneva, Verdana, sans-serif; background: #0f172a; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
+            .card { background: #1e293b; padding: 30px; border-radius: 12px; box-shadow: 0 8px 24px rgba(0,0,0,0.3); text-align: center; width: 100%; max-width: 400px; border: 1px solid #334155; }
+            h2 { color: #38bdf8; margin-bottom: 10px; font-size: 28px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+            p { color: #94a3b8; font-size: 14px; margin-bottom: 25px; }
+            input { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; box-sizing: border-box; font-size: 14px; }
+            input:focus { border-color: #38bdf8; outline: none; }
+            button { width: 100%; padding: 12px; background: #38bdf8; border: none; color: #0f172a; font-weight: bold; border-radius: 6px; cursor: pointer; font-size: 16px; transition: 0.3s; }
+            button:hover { background: #0ea5e9; transform: translateY(-2px); }
+            .footer { margin-top: 25px; font-size: 12px; color: #64748b; }
+        </style>
+    </head>
+    <body>
+        <div class="card">
+            <h2>TAHA BABU MD</h2>
+            <p>Paste your Session ID here to connect your bot instantly.</p>
+            <form action="/" method="POST">
+                <input type="text" name="session_id" placeholder="Paste Session ID..." required>
+                <button type="submit">Connect Bot</button>
+            </form>
+            <div class="footer">Powered by Taha Babu &copy; 2026</div>
+        </div>
+    </body>
+    </html>
+    `);
 });
-
-// FIXED POST ROUTE: Bina MongoDB ke credentials file directory me save karega
-app.post("/", async (req, res) => {
-    try {
-        const { session_id } = req.body;
-        console.log(chalk.yellow("📥 Received session submission..."));
-        
-        if (!session_id) {
-            return res.status(400).json({ success: false, error: "Session ID required" });
-        }
-        
-        if (!session_id.startsWith("Shehbaz-MD!") && !session_id.startsWith("Taha-Babu!")) {
-            // Dono formates ko accept karega security bypass ke liye
-        }
-
-        const cleanSessionId = session_id.includes("!") ? session_id.split("!")[1] : session_id;
-        const credsJsonString = Buffer.from(cleanSessionId.trim(), 'base64').toString('utf-8');
-        
-        let creds;
-        try {
-            creds = JSON.parse(credsJsonString);
-            console.log(chalk.green("✓ Creds parsed successfully"));
-        } catch (parseErr) {
-            console.error("Parse Error:", parseErr);
-            return res.status(400).json({ success: false, error: "Invalid session data" });
-        }
-        
-        let userNumber = null;
-        if (creds.me?.id) {
-            userNumber = creds.me.id.split(':')[0].split('@')[0];
-        } else if (creds.account?.details?.me?.id) {
-            userNumber = creds.account.details.me.id.split(':')[0].split('@')[0];
-        }
-
-        if (!userNumber) {
-            console.error(chalk.red("❌ Could not extract user number"));
-            return res.status(400).json({ success: false, error: "Failed to extract user number" });
-        }
-
-        console.log(chalk.green(`✓ User: +${userNumber}`));
-
-        if (activeSessions.has(userNumber)) {
-            console.log(chalk.yellow(`🔄 Old session found for +${userNumber}, disconnecting...`));
-            try {
-                const oldSock = activeSessions.get(userNumber);
-                oldSock.end();
-            } catch (_) {}
-            activeSessions.delete(userNumber);
-            connectionMessageSent.delete(userNumber);
-            await delay(3000);
-        }
-
-        await sessionManager.register(userNumber, 'pending');
-
-        // Start session directly with custom parsed creds
-        startSession(userNumber, 0, creds).catch(err => console.error(err));
-
-        return res.json({ success: true, message: `Session stored locally! Bot will connect as +${userNumber}` });
-        
-    } catch (error) {
-        console.error(chalk.red("❌ Error:"), error);
-        return res.status(500).json({ success: false, error: error.message });
-    }
-});
-
-app.use("/pair", pairRouter);
-
-app.get("/api/sessions", (req, res) => {
-    const sessions = sessionManager.getAll().map(s => ({
-        number: s.number,
-        status: s.status,
-        isActive: activeSessions.has(s.number)
-    }));
-    res.json({ success: true, sessions });
-});
-
-app.get("/api/stats", (req, res) => {
-    res.json({
-        success: true,
-        sessions: activeSessions.size,
-        uptime: process.uptime()
-    });
-});
-
 // ===============================
 // START APPLICATION
 // ===============================
