@@ -1,18 +1,18 @@
-/**
- * TAHA BABU MD v4.5.6 - Cloud Engine
- * Edited by: Taha Babu (Fixed Render 24/7 Mode)
- */
+import express from 'express';
+import bodyParser from 'body-parser';
+import cors from 'cors';
+import { fileURLToPath } from 'url';
+import path from 'path';
+import fs from 'fs-extra';
+import pino from 'pino';
+import chalk from 'chalk';
+import figlet from 'figlet';
+import dotenv from 'dotenv';
+import https from 'https'; // Render ko 24/7 jagaye rakhne ke liye
 
-import express from "express";
-import bodyParser from "body-parser";
-import cors from "cors";
-import { fileURLToPath } from "url";
-import path from "path";
-import fs from "fs-extra";
-import pino from "pino";
-import chalk from "chalk";
-import figlet from "figlet";
-import dotenv from "dotenv";
+// Route and Manager Imports
+import pairRouter from './pair.js';
+import sessionManager from './lib/sessionManager.js';
 
 dotenv.config();
 
@@ -45,9 +45,9 @@ async function showUltimateBanner() {
     console.clear();
     console.log(chalk.cyan.bold(figlet.textSync('TAHA BABU', { font: 'ANSI Shadow' })));
     console.log(chalk.dim('═'.repeat(80)));
-    console.log(chalk.white(`├ ✓ Version:        4.5.6 Cloud Engine`));
+    console.log(chalk.white(`├ ✓ Version:        4.5.6 Cloud Engine (POWERFUL)`));
     console.log(chalk.white(`├ ✓ Storage:        Local Sessions`));
-    console.log(chalk.white(`└ ✓ Status:         READY`));
+    console.log(chalk.white(`└ ✓ Status:         24/7 ANTI-CRASH ACTIVE`));
     console.log(chalk.dim('═'.repeat(80)));
 }
 
@@ -55,6 +55,9 @@ const app = express();
 app.use(cors({ origin: "*" }));
 app.use(bodyParser.json({ limit: '50mb' }));
 app.use(bodyParser.urlencoded({ extended: true, limit: '50mb' }));
+
+// Integrate your pair logic routes
+app.use('/pair', pairRouter);
 
 async function setupDirectories() {
     const dirs = ['temp', 'logs', 'sessions'];
@@ -68,9 +71,21 @@ function isOwner(number) {
     return ownerNumbers.some(owner => owner.replace(/[^0-9]/g, '') === cleanNumber);
 }
 
-// ===============================
-// MAIN WHATSAPP CONNECTOR
-// ===============================
+// ==========================================
+// POWERFUL 24/7 SELF-PING ENGINE (ANTI-SLEEP)
+// ==========================================
+function keepAlive(url) {
+    if (!url) return;
+    setInterval(() => {
+        https.get(url, (res) => {
+            console.log(chalk.dim(`[Self-Ping] Server auto-wake status: ${res.statusCode}`));
+        }).on('error', (err) => {
+            console.log(chalk.red(`[Self-Ping Error]: ${err.message}`));
+        });
+    }, 5 * 60 * 1000); // Har 5 minute baad server ko ping karega taaki sleep na ho
+}
+
+// Main Whatsapp connection entry
 export async function startSession(sessionNumber, customCreds = null) {
     const sessionFolder = path.join(__dirname, 'sessions', `SESSION_${sessionNumber}`);
     await fs.ensureDir(sessionFolder);
@@ -95,7 +110,7 @@ export async function startSession(sessionNumber, customCreds = null) {
         version,
         connectTimeoutMs: 60000,
         defaultQueryTimeoutMs: 60000,
-        keepAliveIntervalMs: 15000,
+        keepAliveIntervalMs: 30000, // Connection active rakhne ke liye
         emitOwnEvents: false
     });
     
@@ -111,7 +126,7 @@ export async function startSession(sessionNumber, customCreds = null) {
             if (!connectionMessageSent.has(sessionNumber)) {
                 connectionMessageSent.set(sessionNumber, Date.now());
                 await delay(3000);
-                const connectText = `✨ *TAHA BABU MD CONNECTED* ✨\n\nBot is now active 24/7 on Render cloud!`;
+                const connectText = `✨ *TAHA BABU MD IS LIVE* ✨\n\nCloud Engine optimization is fully complete! 🚀\n\n*Status:* 24/7 Online Mode Active`;
                 await sock.sendMessage(`${sessionNumber}@s.whatsapp.net`, { text: connectText }).catch(() => {});
             }
         }
@@ -128,7 +143,6 @@ export async function startSession(sessionNumber, customCreds = null) {
         }
     });
 
-    // Message Handler
     sock.ev.on('messages.upsert', async (msgUpdate) => {
         try {
             const msg = msgUpdate.messages[0];
@@ -145,10 +159,7 @@ export async function startSession(sessionNumber, customCreds = null) {
             if (isCommand) {
                 const cmdName = body.slice(PREFIX.length).split(' ')[0].toLowerCase();
                 if (cmdName === 'ping') {
-                    await sock.sendMessage(from, { text: 'Bot is Active! Speed: 0.45s' }, { quoted: msg });
-                }
-                if (cmdName === 'menu') {
-                    await sock.sendMessage(from, { text: '👑 *TAHA BABU MD MENU* 👑\n\n.ping - Check Bot Speed' }, { quoted: msg });
+                    await sock.sendMessage(from, { text: '⚡ *TAHA BABU MD* is ultra fast and active!' }, { quoted: msg });
                 }
             }
         } catch (e) {}
@@ -157,68 +168,32 @@ export async function startSession(sessionNumber, customCreds = null) {
     return sock;
 }
 
-// ===============================
-// WEB ROUTING (DIRECT INLINE HTML)
-// ===============================
 app.get("/", (req, res) => {
-    res.send(`
-    <!DOCTYPE html>
-    <html lang="en">
-    <head>
-        <meta charset="UTF-8">
-        <meta name="viewport" content="width=device-width, initial-scale=1.0">
-        <title>TAHA BABU MD</title>
-        <style>
-            body { font-family: sans-serif; background: #0f172a; color: #fff; display: flex; justify-content: center; align-items: center; height: 100vh; margin: 0; }
-            .card { background: #1e293b; padding: 30px; border-radius: 12px; text-align: center; width: 100%; max-width: 400px; border: 1px solid #334155; }
-            h2 { color: #38bdf8; margin: 0 0 10px 0; }
-            input { width: 100%; padding: 12px; margin-bottom: 20px; border-radius: 6px; border: 1px solid #475569; background: #0f172a; color: #fff; box-sizing: border-box; }
-            button { width: 100%; padding: 12px; background: #38bdf8; border: none; color: #0f172a; font-weight: bold; border-radius: 6px; cursor: pointer; }
-        </style>
-    </head>
-    <body>
-        <div class="card">
-            <h2>TAHA BABU MD</h2>
-            <p>Paste your Session ID / Creds to activate the bot.</p>
-            <form action="/" method="POST">
-                <input type="text" name="session_id" placeholder="Paste Session ID..." required>
-                <button type="submit">Connect Bot</button>
-            </form>
-        </div>
-    </body>
-    </html>
-    `);
+    res.sendFile(path.join(__dirname, "public", "pair.html"));
 });
 
-app.post("/", async (req, res) => {
-    try {
-        const { session_id } = req.body;
-        if (!session_id) return res.status(400).json({ success: false, error: "Session ID required" });
-
-        const cleanSessionId = session_id.includes("!") ? session_id.split("!")[1] : session_id;
-        const credsJsonString = Buffer.from(cleanSessionId.trim(), 'base64').toString('utf-8');
-        const creds = JSON.parse(credsJsonString);
-        
-        let userNumber = creds.me?.id ? creds.me.id.split(':')[0].split('@')[0] : null;
-        if (!userNumber) return res.status(400).json({ success: false, error: "Invalid Session ID" });
-
-        startSession(userNumber, creds).catch(console.error);
-        return res.send("<h2>Taha Babu Bot Connected! Check your WhatsApp.</h2>");
-    } catch (error) {
-        return res.status(500).send("Error connecting bot: " + error.message);
-    }
-});
-
-// ===============================
-// START ENGINE
-// ===============================
 async function start() {
     await showUltimateBanner();
     await setupDirectories();
     
     app.listen(PORT, () => {
         console.log(chalk.green(`✓ Server live on port ${PORT}`));
+        
+        // Render ka URL yahan auto-ping engine me connect ho jayega
+        if (process.env.RENDER_EXTERNAL_URL) {
+            keepAlive(process.env.RENDER_EXTERNAL_URL);
+        }
     });
 }
+
+// ==========================================
+// ANTI-CRASH GUARD (Server ko crash nahi hone dega)
+// ==========================================
+process.on('unhandledRejection', (reason, p) => {
+    console.log(chalk.red('[Anti-Crash] Caught Rejection: '), reason);
+});
+process.on('uncaughtException', (err, origin) => {
+    console.log(chalk.red('[Anti-Crash] Caught Exception: '), err);
+});
 
 start().catch(console.error);
